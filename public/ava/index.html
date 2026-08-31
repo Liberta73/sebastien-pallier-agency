@@ -1,0 +1,1078 @@
+﻿<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>AVA - Assistante IA</title>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+
+            font-family:
+                Arial,
+                Helvetica,
+                sans-serif;
+
+            background: #f4f1ec;
+
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+
+        /* =========================
+           FENÊTRE PRINCIPALE
+        ========================== */
+
+        .chat-container {
+
+            width: 490px;
+            height: 720px;
+
+            background: white;
+
+            border-radius: 26px;
+
+            overflow: hidden;
+
+            display: flex;
+            flex-direction: column;
+
+            box-shadow:
+                0 20px 50px
+                rgba(0, 0, 0, 0.15);
+        }
+
+
+        /* =========================
+           EN-TÊTE
+        ========================== */
+
+        .chat-header {
+
+            background: #142b47;
+
+            color: white;
+
+            padding:
+                16px 18px 14px;
+
+            text-align: center;
+
+            position: relative;
+        }
+
+
+        .ava-avatar {
+
+            width: 90px;
+            height: 90px;
+
+            border-radius: 50%;
+
+            object-fit: cover;
+
+            border: 4px solid white;
+
+            display: block;
+
+            margin:
+                0 auto 8px auto;
+
+            box-shadow:
+                0 4px 15px
+                rgba(0, 0, 0, 0.25);
+
+            transition:
+                transform 0.3s ease;
+        }
+
+
+        .chat-header h2 {
+
+            margin:
+                4px 0 2px;
+
+            font-size: 22px;
+        }
+
+
+        .chat-header p {
+
+            margin: 0;
+
+            opacity: 0.85;
+
+            font-size: 15px;
+        }
+
+
+        /* =========================
+           NOUVELLE CONVERSATION
+        ========================== */
+
+        #newConversationButton {
+
+            margin-top: 12px;
+
+            padding:
+                8px 14px;
+
+            border:
+                1px solid
+                rgba(255,255,255,0.5);
+
+            border-radius: 12px;
+
+            background:
+                rgba(255,255,255,0.10);
+
+            color: white;
+
+            font-size: 13px;
+
+            cursor: pointer;
+
+            transition:
+                background 0.2s ease;
+        }
+
+
+        #newConversationButton:hover {
+
+            background:
+                rgba(255,255,255,0.20);
+        }
+
+
+        /* =========================
+           MESSAGES
+        ========================== */
+
+        .messages {
+
+            flex: 1;
+
+            padding:
+                30px 22px;
+
+            overflow-y: auto;
+
+            background: #ffffff;
+        }
+
+
+        .message {
+
+            max-width: 85%;
+
+            padding:
+                16px 18px;
+
+            margin-bottom: 15px;
+
+            border-radius: 18px;
+
+            line-height: 1.45;
+
+            font-size: 17px;
+
+            white-space: pre-wrap;
+
+            word-wrap: break-word;
+        }
+
+
+        .ava-message {
+
+            background: #eee9e1;
+
+            color: #111;
+
+            border-bottom-left-radius: 6px;
+        }
+
+
+        .user-message {
+
+            background: #142b47;
+
+            color: white;
+
+            margin-left: auto;
+
+            border-bottom-right-radius: 6px;
+        }
+
+
+        .system-message {
+
+            background: #f4f4f4;
+
+            color: #777;
+
+            font-size: 14px;
+
+            font-style: italic;
+
+            padding:
+                10px 14px;
+        }
+
+
+        /* =========================
+           ZONE DE SAISIE
+        ========================== */
+
+        .input-area {
+
+            padding: 16px;
+
+            border-top:
+                1px solid #ddd;
+
+            display: flex;
+
+            gap: 10px;
+
+            background: white;
+        }
+
+
+        #messageInput {
+
+            flex: 1;
+
+            padding:
+                14px 16px;
+
+            border:
+                1px solid #ccc;
+
+            border-radius: 16px;
+
+            font-size: 16px;
+
+            outline: none;
+        }
+
+
+        #messageInput:focus {
+
+            border-color: #142b47;
+        }
+
+
+        #sendButton {
+
+            border: none;
+
+            background: #142b47;
+
+            color: white;
+
+            padding:
+                0 24px;
+
+            border-radius: 16px;
+
+            font-size: 16px;
+
+            cursor: pointer;
+
+            transition:
+                background 0.2s ease;
+        }
+
+
+        #sendButton:hover {
+
+            background: #1e416b;
+        }
+
+
+        #sendButton:disabled {
+
+            opacity: 0.6;
+
+            cursor: not-allowed;
+        }
+
+
+        /* =========================
+           AVA PARLE
+        ========================== */
+
+        .ava-speaking {
+
+            animation:
+                speaking
+                0.8s
+                infinite
+                alternate;
+        }
+
+
+        @keyframes speaking {
+
+            from {
+
+                transform:
+                    scale(1);
+
+                box-shadow:
+                    0 0 0 4px
+                    rgba(
+                        255,
+                        255,
+                        255,
+                        0.4
+                    ),
+
+                    0 0 10px
+                    rgba(
+                        80,
+                        150,
+                        255,
+                        0.3
+                    );
+            }
+
+            to {
+
+                transform:
+                    scale(1.06);
+
+                box-shadow:
+                    0 0 0 8px
+                    rgba(
+                        255,
+                        255,
+                        255,
+                        0.15
+                    ),
+
+                    0 0 25px
+                    rgba(
+                        80,
+                        150,
+                        255,
+                        0.8
+                    );
+            }
+        }
+
+
+        /* =========================
+           MOBILE
+        ========================== */
+
+        @media (max-width: 600px) {
+
+            body {
+
+                align-items: stretch;
+            }
+
+
+            .chat-container {
+
+                width: 100%;
+
+                height: 100vh;
+
+                border-radius: 0;
+            }
+
+
+            #sendButton {
+
+                padding:
+                    0 18px;
+            }
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+<div class="chat-container">
+
+
+    <!-- =========================
+         EN-TÊTE
+    ========================== -->
+
+    <div class="chat-header">
+
+        <img
+            src="./ava.png"
+            alt="AVA"
+            id="avaAvatar"
+            class="ava-avatar"
+        >
+
+        <h2>
+            AVA
+        </h2>
+
+        <p>
+            Assistante IA
+        </p>
+
+        <button
+            id="newConversationButton"
+            type="button"
+        >
+            Nouvelle conversation
+        </button>
+
+    </div>
+
+
+
+    <!-- =========================
+         MESSAGES
+    ========================== -->
+
+    <div
+        class="messages"
+        id="messages"
+    >
+
+        <div
+            class="message ava-message"
+        >
+            Bonjour 👋 Je suis AVA. Je peux vous aider à construire votre projet en quelques minutes.
+        </div>
+
+    </div>
+
+
+
+    <!-- =========================
+         SAISIE
+    ========================== -->
+
+    <div class="input-area">
+
+        <input
+            type="text"
+            id="messageInput"
+            placeholder="Écrivez votre message..."
+            autocomplete="off"
+        >
+
+        <button
+            id="sendButton"
+            type="button"
+        >
+            Envoyer
+        </button>
+
+    </div>
+
+
+</div>
+
+
+
+<script>
+
+    /* ==========================================
+       URL WEBHOOK N8N
+    ========================================== */
+
+    const WEBHOOK_URL =
+        "https://sebastien-pallier.app.n8n.cloud/webhook/ava-interface-web";
+
+
+    /* ==========================================
+       ÉLÉMENTS HTML
+    ========================================== */
+
+    const input =
+        document.getElementById(
+            "messageInput"
+        );
+
+    const button =
+        document.getElementById(
+            "sendButton"
+        );
+
+    const messages =
+        document.getElementById(
+            "messages"
+        );
+
+    const avatar =
+        document.getElementById(
+            "avaAvatar"
+        );
+
+    const newConversationButton =
+        document.getElementById(
+            "newConversationButton"
+        );
+
+
+    /* ==========================================
+       SESSION
+    ========================================== */
+
+    function createSessionId() {
+
+        return crypto.randomUUID();
+
+    }
+
+
+    /*
+       sessionStorage est volontaire.
+
+       Le sessionId reste identique pendant
+       la conversation / l'onglet.
+
+       Lorsqu'un nouvel onglet ou une nouvelle
+       session démarre, on évite de réutiliser
+       indéfiniment l'ancien prospect.
+    */
+
+    let sessionId =
+        sessionStorage.getItem(
+            "avaSessionId"
+        );
+
+
+    if (!sessionId) {
+
+        sessionId =
+            createSessionId();
+
+        sessionStorage.setItem(
+            "avaSessionId",
+            sessionId
+        );
+
+    }
+
+
+    const STARTED_EVENT_KEY =
+        "avaMessageStartedEmitted";
+
+    let hasStartedAnalyticsEvent =
+        sessionStorage.getItem(
+            STARTED_EVENT_KEY
+        ) === "true";
+
+
+    function emitAvaMessageStartedOnce() {
+
+        if (hasStartedAnalyticsEvent) {
+
+            return;
+
+        }
+
+        window.parent.postMessage(
+            {
+                type: "ava_message_started"
+            },
+            window.location.origin
+        );
+
+        hasStartedAnalyticsEvent = true;
+
+        sessionStorage.setItem(
+            STARTED_EVENT_KEY,
+            "true"
+        );
+
+    }
+
+
+    function emitAvaMessageSent() {
+
+        window.parent.postMessage(
+            {
+                type: "ava_message_sent"
+            },
+            window.location.origin
+        );
+
+    }
+
+
+    /* ==========================================
+       NOUVELLE CONVERSATION
+    ========================================== */
+
+    function startNewConversation() {
+
+        /*
+           Nouveau prospect =
+           nouveau Session ID
+        */
+
+        sessionId =
+            createSessionId();
+
+        sessionStorage.setItem(
+            "avaSessionId",
+            sessionId
+        );
+
+        hasStartedAnalyticsEvent = false;
+
+        sessionStorage.setItem(
+            STARTED_EVENT_KEY,
+            "false"
+        );
+
+
+        /*
+           Nettoyer l'écran
+        */
+
+        messages.innerHTML = "";
+
+
+        /*
+           Nouveau message d'accueil
+        */
+
+        addMessage(
+            "Bonjour 👋 Je suis AVA. Je peux vous aider à construire votre projet en quelques minutes.",
+            "ava-message"
+        );
+
+
+        /*
+           Réactiver la saisie
+        */
+
+        input.disabled = false;
+
+        button.disabled = false;
+
+        input.value = "";
+
+        input.focus();
+
+    }
+
+
+    /* ==========================================
+       AJOUTER MESSAGE À L'ÉCRAN
+    ========================================== */
+
+    function addMessage(
+        text,
+        type
+    ) {
+
+        const message =
+            document.createElement(
+                "div"
+            );
+
+        message.className =
+            "message " + type;
+
+        /*
+           textContent protège également
+           l'interface contre l'injection HTML
+        */
+
+        message.textContent =
+            text;
+
+        messages.appendChild(
+            message
+        );
+
+        messages.scrollTop =
+            messages.scrollHeight;
+
+        return message;
+
+    }
+
+
+    /* ==========================================
+       LIRE LA VOIX D'AVA
+    ========================================== */
+
+    async function playAvaVoice(
+        audioBase64,
+        mimeType
+    ) {
+
+        if (!audioBase64) {
+
+            return;
+        }
+
+
+        const audioSrc =
+            `data:${mimeType || "audio/mpeg"};base64,${audioBase64}`;
+
+
+        const audio =
+            new Audio(
+                audioSrc
+            );
+
+
+        audio.addEventListener(
+            "play",
+            function () {
+
+                avatar.classList.add(
+                    "ava-speaking"
+                );
+
+            }
+        );
+
+
+        audio.addEventListener(
+            "ended",
+            function () {
+
+                avatar.classList.remove(
+                    "ava-speaking"
+                );
+
+            }
+        );
+
+
+        audio.addEventListener(
+            "error",
+            function () {
+
+                avatar.classList.remove(
+                    "ava-speaking"
+                );
+
+                console.error(
+                    "Erreur lors de la lecture audio."
+                );
+
+            }
+        );
+
+
+        try {
+
+            await audio.play();
+
+        }
+
+        catch (_error) {
+
+        }
+
+    }
+
+
+    /* ==========================================
+       ENVOYER MESSAGE À N8N
+    ========================================== */
+
+    async function sendMessage() {
+
+        const text =
+            input.value.trim();
+
+
+        if (!text) {
+
+            return;
+
+        }
+
+
+        emitAvaMessageStartedOnce();
+
+        emitAvaMessageSent();
+
+
+        /*
+           Afficher le message utilisateur
+        */
+
+        addMessage(
+            text,
+            "user-message"
+        );
+
+
+        input.value = "";
+
+        input.disabled = true;
+
+        button.disabled = true;
+
+        newConversationButton.disabled = true;
+
+
+        /*
+           Indicateur attente
+        */
+
+        const waitingMessage =
+            addMessage(
+                "AVA réfléchit…",
+                "system-message"
+            );
+
+
+        try {
+
+            const response =
+                await fetch(
+                    WEBHOOK_URL,
+                    {
+
+                        method: "POST",
+
+                        headers: {
+
+                            "Content-Type":
+                                "application/json"
+
+                        },
+
+                        body:
+                            JSON.stringify(
+                                {
+
+                                    message:
+                                        text,
+
+                                    sessionId:
+                                        sessionId
+
+                                }
+                            )
+
+                    }
+                );
+
+
+            const raw =
+                await response.text();
+
+            if (!response.ok) {
+
+                throw new Error(
+                    `Erreur n8n ${response.status}: ${raw}`
+                );
+
+            }
+
+            if (!raw.trim()) {
+
+                throw new Error(
+                    "Réponse vide reçue depuis n8n"
+                );
+
+            }
+
+            let data;
+
+            try {
+
+                data =
+                    JSON.parse(raw);
+
+            }
+
+            catch (parseError) {
+
+                throw new Error(
+                    "Réponse JSON invalide reçue depuis n8n"
+                );
+
+            }
+
+            const avaText =
+                data?.output ||
+                data?.originalText ||
+                data?.message ||
+                data?.text ||
+                "";
+
+
+            waitingMessage.remove();
+
+
+            /*
+               Réponse texte AVA
+            */
+
+            if (avaText) {
+
+                addMessage(
+                    avaText,
+                    "ava-message"
+                );
+
+            }
+
+            else {
+
+                addMessage(
+                    "AVA n'a pas renvoyé de texte.",
+                    "system-message"
+                );
+
+            }
+
+
+            /*
+               Réponse audio AVA
+            */
+
+            if (data?.audioBase64) {
+
+                await playAvaVoice(
+                    data.audioBase64,
+                    data.audioMimeType
+                );
+
+            }
+
+            else {
+
+                console.info(
+                    "Aucun audio reçu depuis n8n."
+                );
+
+            }
+
+        }
+
+        catch (error) {
+
+            waitingMessage.remove();
+
+
+            addMessage(
+                "Impossible de contacter AVA pour le moment.",
+                "system-message"
+            );
+
+        }
+
+        finally {
+
+            input.disabled = false;
+
+            button.disabled = false;
+
+            newConversationButton.disabled = false;
+
+            input.focus();
+
+        }
+
+    }
+
+
+    /* ==========================================
+       BOUTON ENVOYER
+    ========================================== */
+
+    button.addEventListener(
+        "click",
+        sendMessage
+    );
+
+
+    /* ==========================================
+       NOUVELLE CONVERSATION
+    ========================================== */
+
+    newConversationButton.addEventListener(
+        "click",
+        function () {
+
+            const confirmation =
+                confirm(
+                    "Démarrer une nouvelle conversation ?"
+                );
+
+
+            if (!confirmation) {
+
+                return;
+
+            }
+
+
+            startNewConversation();
+
+        }
+    );
+
+
+    /* ==========================================
+       TOUCHE ENTRÉE
+    ========================================== */
+
+    input.addEventListener(
+        "keydown",
+        function (event) {
+
+            if (
+                event.key === "Enter"
+                &&
+                !event.shiftKey
+            ) {
+
+                event.preventDefault();
+
+                sendMessage();
+
+            }
+
+        }
+    );
+
+
+    /* ==========================================
+       FOCUS AU CHARGEMENT
+    ========================================== */
+
+    input.focus();
+
+
+</script>
+
+
+</body>
+
+</html>
