@@ -67,6 +67,76 @@ main {
   margin-inline: auto;
 }
 
+.zoe-shell {
+  --zoe-ink: #17252b;
+  --zoe-muted: #708087;
+  --zoe-line: #dce5e5;
+  --zoe-paper: #f4f7f5;
+  --zoe-teal: #176d6a;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100vh;
+  min-height: 480px;
+  overflow: hidden;
+  background: var(--zoe-paper);
+  color: var(--zoe-ink);
+  font-family: ui-sans-serif, system-ui, sans-serif;
+}
+
+.zoe-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 22px clamp(20px, 4vw, 48px);
+  border-bottom: 1px solid var(--zoe-line);
+  background: rgba(255, 255, 255, 0.88);
+}
+
+.zoe-kicker, .zoe-message-label {
+  color: var(--zoe-muted);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.zoe-header h1 { margin: 5px 0 0; font-size: 28px; line-height: 1; letter-spacing: -0.03em; }
+.zoe-header p { margin: 6px 0 0; color: var(--zoe-muted); font-size: 13px; }
+.zoe-header-actions { display: flex; align-items: center; gap: 18px; }
+.zoe-status { display: flex; align-items: center; gap: 7px; color: var(--zoe-teal); font-size: 12px; font-weight: 700; }
+.zoe-status span { width: 7px; height: 7px; border-radius: 50%; background: #46a477; box-shadow: 0 0 0 4px #e1f1e8; }
+.zoe-new-button { border: 0; background: transparent; color: var(--zoe-muted); cursor: pointer; font: inherit; font-size: 12px; text-decoration: underline; text-underline-offset: 3px; }
+.zoe-new-button:hover { color: var(--zoe-ink); }
+
+.zoe-history { flex: 1; overflow-y: auto; padding: 32px clamp(20px, 8vw, 120px); scroll-behavior: smooth; }
+.zoe-empty { margin: 25vh auto 0; color: var(--zoe-muted); font-size: 14px; text-align: center; }
+.zoe-message { max-width: min(720px, 86%); margin-bottom: 22px; }
+.zoe-message p { margin: 6px 0 0; padding: 13px 16px; border: 1px solid var(--zoe-line); border-radius: 3px 14px 14px 14px; background: #fff; font-size: 14px; line-height: 1.6; white-space: pre-wrap; overflow-wrap: anywhere; }
+.zoe-message-user { margin-left: auto; text-align: right; }
+.zoe-message-user p { border-color: #c8e1df; border-radius: 14px 3px 14px 14px; background: #e1f0ef; text-align: left; }
+.zoe-loading { color: var(--zoe-muted); font-size: 13px; }
+.zoe-composer { padding: 16px clamp(20px, 8vw, 120px) 22px; border-top: 1px solid var(--zoe-line); background: rgba(255, 255, 255, 0.92); }
+.zoe-composer label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.zoe-composer textarea { display: block; width: 100%; resize: vertical; min-height: 54px; padding: 13px 15px; border: 1px solid #cbd8d8; border-radius: 4px; outline: none; background: #fff; color: var(--zoe-ink); font: inherit; font-size: 14px; line-height: 1.45; }
+.zoe-composer textarea:focus { border-color: var(--zoe-teal); box-shadow: 0 0 0 3px rgba(23, 109, 106, 0.14); }
+.zoe-composer-footer { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 9px; }
+.zoe-hint { color: var(--zoe-muted); font-size: 11px; }
+.zoe-send-button { min-width: 88px; padding: 9px 15px; border: 0; border-radius: 3px; background: var(--zoe-teal); color: #fff; cursor: pointer; font: inherit; font-size: 13px; font-weight: 700; }
+.zoe-send-button:disabled { cursor: not-allowed; opacity: 0.4; }
+.zoe-error { margin: 10px 0 0; color: #a33e3e; font-size: 12px; }
+.zoe-denied { display: grid; min-height: 100vh; place-items: center; background: #f4f7f5; color: #17252b; }
+.zoe-denied > div { padding: 32px; text-align: center; }
+.zoe-denied h1 { margin: 10px 0 0; font-size: 22px; }
+
+@media (max-width: 620px) {
+  .zoe-header { align-items: flex-start; padding: 18px 16px; }
+  .zoe-header-actions { align-items: flex-end; flex-direction: column; gap: 9px; }
+  .zoe-history, .zoe-composer { padding-inline: 16px; }
+  .zoe-hint { max-width: 55%; line-height: 1.4; }
+}
+
 a { color: inherit; }
 
 .page-frame {
