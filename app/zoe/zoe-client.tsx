@@ -42,10 +42,26 @@ export default function ZoeClient() {
   const [input, setInput] = useState("");
   const [sessionId, setSessionId] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const [isAudioLoading, setIsAudioLoading] = useState(false);
   const [error, setError] = useState("");
   const historyRef = useRef<HTMLDivElement>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const mediaStreamRef = useRef<MediaStream | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  const shouldSendAudioRef = useRef(false);
 
   useEffect(() => setSessionId(getSessionId()), []);
+  useEffect(() => {
+    return () => {
+      shouldSendAudioRef.current = false;
+      if (mediaRecorderRef.current?.state === "recording") mediaRecorderRef.current.stop();
+      mediaStreamRef.current?.getTracks().forEach((track) => track.stop());
+      mediaRecorderRef.current = null;
+      mediaStreamRef.current = null;
+      audioChunksRef.current = [];
+    };
+  }, []);
   useEffect(() => {
     historyRef.current?.scrollTo({ top: historyRef.current.scrollHeight, behavior: "smooth" });
   }, [messages, isLoading]);
@@ -56,6 +72,84 @@ export default function ZoeClient() {
     setSessionId(nextSessionId);
     setMessages([]);
     setError("");
+  }
+
+  async function startRecording() {
+    if (isLoading || isAudioLoading || isRecording || !sessionId) return;
+    if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === "undefined") {
+      setError("L’enregistrement audio n’est pas disponible dans ce navigateur.");
+      return;
+    }
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mimeType = ["audio/webm;codecs=opus", "audio/mp4", "audio/webm", "audio/ogg;codecs=opus"].find((type) => MediaRecorder.isTypeSupported(type));
+      const recorder = mimeType ? new MediaRecorder(stream, { mimeType }) : new MediaRecorder(stream);
+      audioChunksRef.current = [];
+      shouldSendAudioRef.current = false;
+      mediaStreamRef.current = stream;
+      mediaRecorderRef.current = recorder;
+      recorder.ondataavailable = (event) => {
+        if (event.data.size > 0) audioChunksRef.current.push(event.data);
+      };
+      recorder.onstop = async () => {
+        const shouldSend = shouldSendAudioRef.current;
+        shouldSendAudioRef.current = false;
+        const chunks = audioChunksRef.current;
+        const streamToRelease = mediaStreamRef.current;
+        const recorderMimeType = recorder.mimeType || mimeType || "audio/webm";
+        const extension = recorderMimeType.includes("mp4") ? "mp4" : recorderMimeType.includes("ogg") ? "ogg" : "webm";
+        const audioBlob = new Blob(chunks, { type: recorderMimeType });
+        mediaRecorderRef.current = null;
+        mediaStreamRef.current = null;
+        audioChunksRef.current = [];
+        streamToRelease?.getTracks().forEach((track) => track.stop());
+        setIsRecording(false);
+
+        if (!shouldSend) return;
+        if (!audioBlob.size) {
+          setError("Aucun audio n’a été enregistré.");
+          return;
+        }
+
+        setIsAudioLoading(true);
+        setError("");
+        try {
+          const formData = new FormData();
+          formData.append("data", audioBlob, `zoe-audio.${extension}`);
+          formData.append("session_id", sessionId);
+          const response = await fetch("/api/zoe", { method: "POST", body: formData });
+          const data = (await response.json()) as ZoeApiResponse;
+          if (!response.ok || !data.ok || !data.message) throw new Error("Zoe audio request failed");
+          setMessages((current) => [...current, { id: crypto.randomUUID(), role: "zoe", content: data.message! }]);
+        } catch {
+          setError("Zoé est momentanément indisponible. Réessayez.");
+        } finally {
+          setIsAudioLoading(false);
+        }
+      };
+      recorder.onerror = () => {
+        shouldSendAudioRef.current = false;
+        recorder.stop();
+        setError("L’enregistrement audio a échoué. Réessayez.");
+      };
+      recorder.start();
+      setError("");
+      setIsRecording(true);
+    } catch {
+      mediaStreamRef.current?.getTracks().forEach((track) => track.stop());
+      mediaStreamRef.current = null;
+      mediaRecorderRef.current = null;
+      audioChunksRef.current = [];
+      setError("L’accès au microphone a été refusé ou est indisponible.");
+    }
+  }
+
+  function stopRecording() {
+    const recorder = mediaRecorderRef.current;
+    if (!recorder || recorder.state !== "recording") return;
+    shouldSendAudioRef.current = true;
+    recorder.stop();
   }
 
   async function sendMessage(event?: FormEvent) {
@@ -118,10 +212,13 @@ export default function ZoeClient() {
 
       <form className="zoe-composer" onSubmit={sendMessage}>
         <label htmlFor="zoe-message">Message</label>
-        <textarea id="zoe-message" value={input} onChange={(event) => setInput(event.target.value)} onKeyDown={handleKeyDown} placeholder="Demander quelque chose à Zoé…" maxLength={4000} rows={2} disabled={isLoading} />
+        <textarea id="zoe-message" value={input} onChange={(event) => setInput(event.target.value)} onKeyDown={handleKeyDown} placeholder="Demander quelque chose à Zoé…" maxLength={4000} rows={2} disabled={isLoading || isRecording || isAudioLoading} />
         <div className="zoe-composer-footer">
           <span className="zoe-hint">Entrée pour envoyer · Maj + Entrée pour une nouvelle ligne</span>
-          <button type="submit" className="zoe-send-button" disabled={!input.trim() || isLoading}>Envoyer</button>
+          <button type="button" onClick={isRecording ? stopRecording : startRecording} aria-label={isRecording ? "Arrêter l’enregistrement" : "Démarrer l’enregistrement"} aria-pressed={isRecording} disabled={isLoading || isAudioLoading}>
+            {isRecording ? "Arrêter" : "Microphone"}
+          </button>
+          <button type="submit" className="zoe-send-button" disabled={!input.trim() || isLoading || isRecording || isAudioLoading}>Envoyer</button>
         </div>
         {error && <p className="zoe-error" role="alert">{error}</p>}
       </form>
