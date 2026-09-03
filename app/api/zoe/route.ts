@@ -3,7 +3,7 @@ import { hasValidZoeCookie } from "@/lib/zoe-auth";
 
 const MAX_MESSAGE_LENGTH = 4000;
 const MAX_AUDIO_SIZE = 25 * 1024 * 1024;
-const N8N_TIMEOUT_MS = 20_000;
+const N8N_TIMEOUT_MS = 60_000;
 
 type ZoeRequest = { message: string; session_id: string };
 type N8nResponse = { response?: unknown; message?: unknown; text?: unknown; data?: unknown };
