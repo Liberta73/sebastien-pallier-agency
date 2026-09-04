@@ -64,18 +64,11 @@ export async function POST(request: NextRequest) {
       if (response.status === 429) return NextResponse.json({ ok: false, error: "Service temporairement indisponible" }, { status: 429 });
       if (!response.ok) return NextResponse.json({ ok: false, error: "Service indisponible" }, { status: 502 });
 
-      const rawBody = await response.text();
       let payload: N8nResponse;
       try {
-        payload = JSON.parse(rawBody) as N8nResponse;
+        payload = (await response.json()) as N8nResponse;
       } catch {
-        return NextResponse.json({
-          upstream_content_type: response.headers.get("content-type") ?? "",
-          body_length: rawBody.length,
-          starts_with_brace: rawBody.trimStart().startsWith("{"),
-          starts_with_bracket: rawBody.trimStart().startsWith("["),
-          starts_with_object_object: rawBody.trimStart().startsWith("[object Object]"),
-        }, { status: 502 });
+        return NextResponse.json({ ok: false, error: "Réponse invalide" }, { status: 502 });
       }
       const text = getResponseText(payload);
       const audio = typeof payload.audio === "string" ? payload.audio.trim() : "";
