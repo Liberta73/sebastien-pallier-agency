@@ -6,7 +6,7 @@ const MAX_AUDIO_SIZE = 25 * 1024 * 1024;
 const N8N_TIMEOUT_MS = 60_000;
 
 type ZoeRequest = { message: string; session_id: string };
-type N8nResponse = { response?: unknown; message?: unknown; text?: unknown; data?: unknown };
+type N8nResponse = { response?: unknown; message?: unknown; text?: unknown; audio?: unknown; audio_mime_type?: unknown; data?: unknown };
 
 function isUuid(value: string) {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
@@ -78,8 +78,10 @@ export async function POST(request: NextRequest) {
         }, { status: 502 });
       }
       const text = getResponseText(payload);
-      if (!text) return NextResponse.json({ ok: false, error: "Réponse vide" }, { status: 502 });
-      return NextResponse.json({ ok: true, message: text });
+      const audio = typeof payload.audio === "string" ? payload.audio.trim() : "";
+      const audioMimeType = typeof payload.audio_mime_type === "string" ? payload.audio_mime_type.trim() : "";
+      if (!text || !audio || !audioMimeType.startsWith("audio/")) return NextResponse.json({ ok: false, error: "Réponse vide" }, { status: 502 });
+      return NextResponse.json({ ok: true, message: text, audio, audio_mime_type: audioMimeType });
     } catch (error) {
       console.error("Zoé proxy error", { type: error instanceof Error && error.name === "AbortError" ? "timeout" : "network" });
       return NextResponse.json({ ok: false, error: "Service indisponible" }, { status: 502 });
