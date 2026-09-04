@@ -12,6 +12,7 @@ declare global {
 }
 
 const GA_SCRIPT_ID = "google-analytics-gtag";
+const CONSENT_STORAGE_KEY = "sp_analytics_consent";
 const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
 
 export default function GoogleAnalytics() {
@@ -27,6 +28,20 @@ export default function GoogleAnalytics() {
     }
     window.addEventListener("sp-analytics-consent-changed", handleConsentChange);
     return () => window.removeEventListener("sp-analytics-consent-changed", handleConsentChange);
+  }, [pathname]);
+
+  useEffect(() => {
+    if (!GA_MEASUREMENT_ID || pathname === "/zoe" || pathname.startsWith("/zoe/")) return;
+
+    function handleAvaOpen() {
+      if (window.localStorage.getItem(CONSENT_STORAGE_KEY) !== "granted" || typeof window.gtag !== "function") return;
+      window.gtag("event", "ava_open", {
+        event_category: "engagement",
+      });
+    }
+
+    window.addEventListener("ava:open", handleAvaOpen);
+    return () => window.removeEventListener("ava:open", handleAvaOpen);
   }, [pathname]);
 
   if (!GA_MEASUREMENT_ID || pathname === "/zoe" || pathname.startsWith("/zoe/")) {
