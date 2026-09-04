@@ -3,6 +3,7 @@ import React from "react";
 import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 import { cn } from "@/lib/utils";
+import GoogleAnalytics from "@/components/GoogleAnalytics";
 
 const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
@@ -51,6 +52,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <div className="min-h-screen bg-[#050816] text-slate-100">
           {children}
         </div>
+        <GoogleAnalytics />
       </body>
     </html>
   );
