@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 import { cn } from "@/lib/utils";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
+import AnalyticsConsent from "@/components/AnalyticsConsent";
 
 const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
@@ -53,6 +54,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           {children}
         </div>
         <GoogleAnalytics />
+        <AnalyticsConsent />
       </body>
     </html>
   );

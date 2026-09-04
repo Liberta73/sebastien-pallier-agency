@@ -20,6 +20,13 @@ export default function GoogleAnalytics() {
 
   useEffect(() => {
     setHasConsent(window.localStorage.getItem("sp_analytics_consent") === "granted");
+    function handleConsentChange(event: Event) {
+      const consent = (event as CustomEvent<{ consent?: string }>).detail?.consent;
+      if (consent === "granted") setHasConsent(true);
+      if (consent === "denied") setHasConsent(false);
+    }
+    window.addEventListener("sp-analytics-consent-changed", handleConsentChange);
+    return () => window.removeEventListener("sp-analytics-consent-changed", handleConsentChange);
   }, [pathname]);
 
   if (!GA_MEASUREMENT_ID || pathname === "/zoe" || pathname.startsWith("/zoe/")) {
