@@ -11,6 +11,8 @@ type ConversationMessage = {
 type ZoeApiResponse = {
   ok: boolean;
   message?: string;
+  audio?: string;
+  audio_mime_type?: string;
   error?: string;
 };
 
@@ -122,6 +124,30 @@ export default function ZoeClient() {
           const data = (await response.json()) as ZoeApiResponse;
           if (!response.ok || !data.ok || !data.message) throw new Error("Zoe audio request failed");
           setMessages((current) => [...current, { id: crypto.randomUUID(), role: "zoe", content: data.message! }]);
+          if (typeof data.audio === "string" && data.audio.trim()) {
+            try {
+              const binary = atob(data.audio);
+              const bytes = Uint8Array.from(binary, (character) => character.charCodeAt(0));
+              const responseAudioBlob = new Blob([bytes], { type: data.audio_mime_type || "audio/mpeg" });
+              const audioUrl = URL.createObjectURL(responseAudioBlob);
+              const player = new Audio(audioUrl);
+              let urlRevoked = false;
+              const revokeAudioUrl = () => {
+                if (urlRevoked) return;
+                urlRevoked = true;
+                URL.revokeObjectURL(audioUrl);
+              };
+              const handlePlaybackError = () => {
+                revokeAudioUrl();
+                setError("La réponse audio n’a pas pu être lue.");
+              };
+              player.addEventListener("ended", revokeAudioUrl, { once: true });
+              player.addEventListener("error", handlePlaybackError, { once: true });
+              void player.play().catch(handlePlaybackError);
+            } catch {
+              setError("La réponse audio n’a pas pu être lue.");
+            }
+          }
         } catch {
           setError("Zoé est momentanément indisponible. Réessayez.");
         } finally {
