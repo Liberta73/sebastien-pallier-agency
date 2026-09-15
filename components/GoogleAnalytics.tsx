@@ -132,15 +132,30 @@ export default function GoogleAnalytics() {
         return;
       }
 
+      const sessionId =
+        typeof event.data.sessionId === "string"
+          ? event.data.sessionId.trim()
+          : "";
+
       if (event.data.type === "ava_message_started") {
         window.gtag("event", "ava_conversation_start", {
           event_category: "engagement",
+          ...(sessionId
+            ? {
+                session_id_ava: sessionId,
+              }
+            : {}),
         });
       }
 
       if (event.data.type === "ava_message_sent") {
         window.gtag("event", "ava_message_sent", {
           event_category: "engagement",
+          ...(sessionId
+            ? {
+                session_id_ava: sessionId,
+              }
+            : {}),
         });
       }
     }
