@@ -588,39 +588,38 @@
 
     function emitAvaMessageStartedOnce() {
 
-        if (hasStartedAnalyticsEvent) {
-
-            return;
-
-        }
-
-        window.parent.postMessage(
-            {
-                type: "ava_message_started"
-            },
-            window.location.origin
-        );
-
-        hasStartedAnalyticsEvent = true;
-
-        sessionStorage.setItem(
-            STARTED_EVENT_KEY,
-            "true"
-        );
-
+    if (hasStartedAnalyticsEvent) {
+        return;
     }
 
+    window.parent.postMessage(
+        {
+            type: "ava_message_started",
+            sessionId: sessionId
+        },
+        window.location.origin
+    );
 
-    function emitAvaMessageSent() {
+    hasStartedAnalyticsEvent = true;
 
-        window.parent.postMessage(
-            {
-                type: "ava_message_sent"
-            },
-            window.location.origin
-        );
+    sessionStorage.setItem(
+        STARTED_EVENT_KEY,
+        "true"
+    );
+}
 
-    }
+
+function emitAvaMessageSent() {
+
+    window.parent.postMessage(
+        {
+            type: "ava_message_sent",
+            sessionId: sessionId
+        },
+        window.location.origin
+    );
+
+}
 
 
     /* ==========================================
